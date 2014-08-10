@@ -1,0 +1,72 @@
+
+
+Warm-up Run #1
+===================
+Total Time Taken:	3951.0ms
+
+Warm-up Run #2
+===================
+Total Time Taken:	3950.0ms
+
+Sequential Run #1
+===================
+Total Time Taken:	3980.0ms
+Max Value:		199172.7
+Received Time:		500.0
+
+Sequential Run #2
+===================
+Total Time Taken:	3986.0ms
+Max Value:		199172.7
+Received Time:		500.0
+
+Sequential Run #3
+===================
+Total Time Taken:	3965.0ms
+Max Value:		199172.7
+Received Time:		500.0
+
+Sequential Run #4
+===================
+Total Time Taken:	3950.0ms
+Max Value:		199172.7
+Received Time:		500.0
+
+Sequential Run #5
+===================
+Total Time Taken:	3953.0ms
+Max Value:		199172.7
+Received Time:		500.0
+
+Sequential Run #6
+===================
+Total Time Taken:	3940.0ms
+Max Value:		199172.7
+Received Time:		500.0
+
+Sequential Run #7
+===================
+Total Time Taken:	3950.0ms
+Max Value:		199172.7
+Received Time:		500.0
+
+Sequential Run #8
+===================
+Total Time Taken:	3945.0ms
+Max Value:		199172.7
+Received Time:		500.0
+
+Sequential Run #9
+===================
+Total Time Taken:	3947.0ms
+Max Value:		199172.7
+Received Time:		500.0
+
+Sequential Run #10
+===================
+Total Time Taken:	3947.0ms
+Max Value:		199172.7
+Received Time:		500.0
+
+Time taken to do 10 runs: 39563.0ms
+Average Time taken to do a run: 3956.3ms
