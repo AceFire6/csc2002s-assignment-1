@@ -15,7 +15,7 @@ The maximum value of the cross-correlation is used to find the time difference b
  
 The tests run for this report were run on datasets that contained 10 thousand, 100 thousand, and 1 million data points.
  
-The tests were run on 4 separate machines with different processors and architectures.
+The tests were run on 3 separate machines with different processors and architectures.
  
 ---
 ### _Methods_
@@ -30,11 +30,52 @@ Both the sequential and parallel algorithms do 12 runs, 2 "warm-up" runs and 10 
 
 During each run, the results(Maximum value in the cross-correlation array, index of said value and the run time) are printed to standard output and to a text file. At the end of the 10 runs, the total run time and average run time are displayed and written to the text file.
 
-I validated my algorithm by comparing the results with the given results for the small dataset as well as conferring with my peers and discovering that I was indeed getting the correct result.
+I validated my algorithm by comparing the results with the given results for the small dataset as well as conferring with my peers and discovering that I was indeed getting the correct result. During my discussions I was informed that an additional speedup could be achieved by adding a break.
+
+```java
+for (int i = startIndex; i < endIndex; ++i) {
+    float sum = 0;
+    for (int j = 0; j < receivedArray.length; ++j) {
+        if (i + j < receivedArray.length) {
+            sum += receivedArray[i + j] * transmittedArray[j];
+        }
+    }
+    correlationArray[i] = sum;
+}
+```
+vs
+```java
+for (int i = startIndex; i < endIndex; ++i) {
+    float sum = 0;
+    for (int j = 0; j < receivedArray.length; ++j) {
+        if (i + j < receivedArray.length) {
+            sum += receivedArray[i + j] * transmittedArray[j];
+        } else {
+            break;
+        }
+    }
+    correlationArray[i] = sum;
+}
+```
+
+The break works because once the `if (i + j < receivedArray.length)` statement evaluates to false, it won't be true again.
 
 #### _Problems Encountered_
 
 The biggest problem I encountered was the inexplicably slow times I was getting from the tests of my parallel implementation. The issue was caused by not using the given indices for each thread,  instead running through the entire submitted and received datasets in each thread. Finding this error wasted an unnecessarily large amount of time, which is unfortunate.
+
+##### ERRONEOUS CODE:
+```java
+for (int i = startIndex; i < transmittedArray.length; ++i) {
+    float sum = 0;
+    for (int j = 0; j < receivedArray.length; ++j) {
+        if (i + j < receivedArray.length) {
+            sum += receivedArray[i + j] * transmittedArray[j];
+        }
+    }
+    correlationArray[i] = sum;
+}
+```
 
 A problem occurred when I wanted to run my code on a the i7 but the resident operating system was Windows. I had to instruct the owner on how to get the JDK and then write `.bat` files that performed the same function as my make files on Unix.
 
@@ -76,13 +117,38 @@ Machine 3:
  * Virtual Cores: 4
  * Level 2 Cache: 1 MB
  * Level 3 Cache: 8 MB
- 
- Machine 4:
- 
- * CPU: AMD Phenom II X4 965 Black Edition
- * Hyperthreading: No
- * Physical Cores: 4
- * Virtual Cores: 0
- * Level 2 Cache: 2 MB
- * Level 3 Cache: 6 MB
 ---
+### _Results and Discussion_
+
+#### _Results_
+
+![machine1 stats](machine1.png)
+
+
+
+![machine2 stats](machine2.png)
+
+
+
+![machine3 stats](machine3.png)
+
+#### _Discusion_
+
+Although not recorded, I did experiment with various sequential cutoff values before settling on my current value of `750`. I found that if I used a value greater than or less than `+-750` it took longer to execute. What I observed, as far as my understanding and testing goes was that the `sequential_cutoff` and `time_taken` when graphed would form a parabola of the form
+
+`y = a(x - 750)^2 + fastestTime` where `a > 0` and `x >= 0`
+
+The turning point is at approximately `750` and the `time_taken` is increasing on either side of the turning point.
+
+---
+### _Conclusion_
+
+The i7 was by far the best performing processor. It demonstrated it's power by giving a 5.96 times speedup on the 1 million data point dataset. The speedup made me question it's authenticity, but sure enough, similar speed were experienced on the second run-through.
+
+The processor powering machine 2 had a similar number of cores to that of machine 3 but the core clock was far lower. This probably contributed to the much slower speeds as the each thread eventually reaches a point when it has to run sequentially to do the correlation and this being faster would be an advantage. In [this](http://cpuboss.com/cpus/Intel-Xeon-E5620-vs-Intel-Core-i7-2600) comparison it can be seen that the i7 outperforms the Xeon entirely.
+
+The speeds were probably also hindered by other students using Nightmare.
+
+My implementation allows for a fairly good usage of the additional physical and virtual cores, reaching a 3.02 times speedup on 2 physical cores and 2 virtual core and a 5.30 times speedup on 4 physical cores and 4 virtual cores, however, the speed increase as more cores are added is seen to have diminishing returns. The speedup per core decreases as the number of cores increases.
+
+Overall, the parallelization definitely increased the performance of the algorithm while remaining accurate and having no race conditions. This, according to the ethos of parallelization is a success.

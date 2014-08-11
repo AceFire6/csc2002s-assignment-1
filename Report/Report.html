@@ -1,0 +1,126 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 4.1.2">
+<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.css">
+<title>Assignment 1 - Report</title>
+</head>
+<body class="container">
+<main class="row">
+<h1>CSC2002S - Assignment 1 - Report</h1>
+<hr>
+<h4>Name: Jethro Muller</h4>
+<h4>Student Number: MLLJET001</h4>
+<hr>
+<h3><b>Introduction</b></h3>
+<p>The project aimed to investigate the practical application of parallelism using the Java ForkJoinPool framework, and the
+speedups seen in the real world on different processors.</p>
+<p>The code that was to be parallelized was for cross-correlating two datasets and finding the maximum value of the result. 
+The datasets were meant to be approximations of the sort of data one would get if they were doing signal processing for a radar.</p>
+<p>The maximum value of the cross-correlation is used to find the time difference between the signal being sent and receiving a response.</p>
+<p>The tests run for this report were run on datasets that contained 10 thousand, 100 thousand, and 1 million data points.</p>
+<p>The tests were run on 3 separate machines with different processors and architectures.</p>
+<hr>
+<h3><b>Methods</b></h3>
+<h4><b>Approaching the Solution</b></h4>
+<p>I approached the solution by looking for a way to decompose each method to a single unit of work. Once I had identified this point, I was able to use a divide and conquer approach. This was put into the section that runs when the sequential threshold is reached.</p>
+<p>Once that was done, I investigate the best method to collate the resulting data. I decided that the best way for the cross-correlation result array should not be remade in each thread as remaking it and then combining it later was costly. After doing some testing I found the best method to be using its mutability to pass the same array to all threads and have them fill in the same single array. The same thing was done with the two dataset arrays as the indices each thread was required to access were passed as a parameter to each new thread.</p>
+<p>Both the sequential and parallel algorithms do 12 runs, 2 "warm-up" runs and 10 timed runs. I chose to do 2 warm-up runs because I noticed that the first two runs were always significantly slower than the rest and I didn't want this to skew my results.</p>
+<p>During each run, the results(Maximum value in the cross-correlation array, index of said value and the run time) are printed to standard output and to a text file. At the end of the 10 runs, the total run time and average run time are displayed and written to the text file.</p>
+<p>I validated my algorithm by comparing the results with the given results for the small dataset as well as conferring with my peers and discovering that I was indeed getting the correct result. During my discussions I was informed that an additional speedup could be achieved by adding a break.</p>
+<pre><code class="java">for (int i = startIndex; i &lt; endIndex; ++i) {
+    float sum = 0;
+    for (int j = 0; j &lt; receivedArray.length; ++j) {
+        if (i + j &lt; receivedArray.length) {
+            sum += receivedArray[i + j] * transmittedArray[j];
+        }
+    }
+    correlationArray[i] = sum;
+}
+</code></pre>
+
+<p>vs</p>
+<pre><code class="java">for (int i = startIndex; i &lt; endIndex; ++i) {
+    float sum = 0;
+    for (int j = 0; j &lt; receivedArray.length; ++j) {
+        if (i + j &lt; receivedArray.length) {
+            sum += receivedArray[i + j] * transmittedArray[j];
+        } else {
+            break;
+        }
+    }
+    correlationArray[i] = sum;
+}
+</code></pre>
+
+<p>The break works because once the <code>if (i + j &lt; receivedArray.length)</code> statement evaluates to false, it won't be true again.</p>
+<h4><b>Problems Encountered</b></h4>
+<p>The biggest problem I encountered was the inexplicably slow times I was getting from the tests of my parallel implementation. The issue was caused by not using the given indices for each thread,  instead running through the entire submitted and received datasets in each thread. Finding this error wasted an unnecessarily large amount of time, which is unfortunate.</p>
+<h5>ERRONEOUS CODE:</h5>
+<pre><code class="java">for (int i = startIndex; i &lt; transmittedArray.length; ++i) {
+    float sum = 0;
+    for (int j = 0; j &lt; receivedArray.length; ++j) {
+        if (i + j &lt; receivedArray.length) {
+            sum += receivedArray[i + j] * transmittedArray[j];
+        }
+    }
+    correlationArray[i] = sum;
+}
+</code></pre>
+
+<p>A problem occurred when I wanted to run my code on a the i7 but the resident operating system was Windows. I had to instruct the owner on how to get the JDK and then write <code>.bat</code> files that performed the same function as my make files on Unix.</p>
+<h4><b>Profiling</b></h4>
+<p>All the tests were run on the machines and the time taken to correlate the data points and find the maximum was recorded.
+This was done 10 times for both the sequential algorithm and the parallel algorithm and the results were printed to a text file.</p>
+<p>The system load during the runs done on Nightmare and the Intel-i7 were unable to be controlled as I was not able to have sole access to either of them.</p>
+<p>The timing was done using <code>System.nanoTime()</code> and then later converted to milliseconds.</p>
+<h4><b>Tested CPUs</b></h4>
+<p>Machine 1:</p>
+<ul>
+<li>CPU: Intel(R) Core(TM) i5-3210M CPU @ 2.50GHz</li>
+<li>Hyperthreading: Yes</li>
+<li>Physical Cores: 2</li>
+<li>Virtual Cores: 2</li>
+<li>Level 1 Cache: 128 KB</li>
+<li>Level 2 Cache: 512 KB</li>
+<li>Level 3 Cache: 3072 KB</li>
+</ul>
+<p>Machine 2: (Nightmare)</p>
+<ul>
+<li>CPU: Intel(R) Xeon(R) CPU E5620  @ 2.40GHz</li>
+<li>Hyperthreading: Yes</li>
+<li>Physical Cores: 4</li>
+<li>Virtual Cores: 4</li>
+<li>Level 2 Cache: 1 MB</li>
+<li>Level 3 Cache: 12 MB</li>
+</ul>
+<p>Machine 3:</p>
+<ul>
+<li>CPU: Intel(R) Core(TM) i7-2600k CPU @ 3.40GHz</li>
+<li>Hyperthreading: Yes</li>
+<li>Physical Cores: 4</li>
+<li>Virtual Cores: 4</li>
+<li>Level 2 Cache: 1 MB</li>
+<li>Level 3 Cache: 8 MB</li>
+</ul>
+<hr>
+<h3><b>Results and Discussion</b></h3>
+<h4><b>Results</b></h4>
+<p><img alt="machine1 stats" src="machine1.png"></p>
+<p><img alt="machine2 stats" src="machine2.png"></p>
+<p><img alt="machine3 stats" src="machine3.png"></p>
+<h4><b>Discusion</b></h4>
+<p>Although not recorded, I did experiment with various sequential cutoff values before settling on my current value of <code>750</code>. I found that if I used a value greater than or less than <code>+-750</code> it took longer to execute. What I observed, as far as my understanding and testing goes was that the <code>sequential_cutoff</code> and <code>time_taken</code> when graphed would form a parabola of the form</p>
+<p><code>y = a(x - 750)^2 + fastestTime</code> where <code>a &gt; 0</code> and <code>x &gt;= 0</code></p>
+<p>The turning point is at approximately <code>750</code> and the <code>time_taken</code> is increasing on either side of the turning point.</p>
+<hr>
+<h3><b>Conclusion</b></h3>
+<p>The i7 was by far the best performing processor. It demonstrated it's power by giving a 5.96 times speedup on the 1 million data point dataset. The speedup made me question it's authenticity, but sure enough, similar speed were experienced on the second run-through.</p>
+<p>The processor powering machine 2 had a similar number of cores to that of machine 3 but the core clock was far lower. This probably contributed to the much slower speeds as the each thread eventually reaches a point when it has to run sequentially to do the correlation and this being faster would be an advantage. In <a href="http://cpuboss.com/cpus/Intel-Xeon-E5620-vs-Intel-Core-i7-2600">this</a> comparison it can be seen that the i7 outperforms the Xeon entirely.</p>
+<p>The speeds were probably also hindered by other students using Nightmare.</p>
+<p>My implementation allows for a fairly good usage of the additional physical and virtual cores, reaching a 3.02 times speedup on 2 physical cores and 2 virtual core and a 5.30 times speedup on 4 physical cores and 4 virtual cores, however, the speed increase as more cores are added is seen to have diminishing returns. The speedup per core decreases as the number of cores increases.</p>
+<p>Overall, the parallelization definitely increased the performance of the algorithm while remaining accurate and having no race conditions. This, according to the ethos of parallelization is a success.</p>
+</main>
+</body>
+</html>
